@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notificationbg"
+    android:layout_width="match_parent"
+    android:layout_height="128dp"
+    android:background="@color/transparent_black">
+
+    <ImageView
+        android:id="@+id/iv_bg"
+        android:layout_width="match_parent"
+        android:layout_height="128dp"
+        android:scaleType="centerCrop"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/transparent_black">
+
+        <ImageView
+            android:id="@+id/status_bar_album_art"
+            android:layout_width="@dimen/notification_expanded_height"
+            android:layout_height="@dimen/notification_expanded_height"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:divider="?android:attr/listDivider"
+            android:dividerPadding="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:showDividers="middle">
+
+            <ImageButton
+                android:id="@+id/status_bar_prev"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/play_controls_notification"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_prev_white" />
+
+            <ImageView
+                android:id="@+id/status_bar_play"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/play_controls_notification"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_play_white" />
+
+            <ImageButton
+                android:id="@+id/status_bar_next"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/play_controls_notification"
+                android:layout_weight="1"
+                android:background="?android:attr/selectableItemBackground"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_next_white" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="1px"
+            android:layout_above="@+id/buttons"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/status_bar_album_art"
+            android:background="?android:attr/dividerHorizontal" />
+
+        <ImageButton
+            android:id="@+id/status_bar_collapse"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="8dp"
+            android:src="@drawable/ic_close_white"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/textarea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center_vertical"
+            android:layout_toLeftOf="@+id/status_bar_collapse"
+            android:layout_toRightOf="@+id/status_bar_album_art"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/notification_padding"
+            android:paddingTop="8dp">
+
+            <TextView
+                android:id="@+id/status_bar_track_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Title"
+                android:textSize="18dp"
+                android:layout_gravity="left"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:focusable="true"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/status_bar_artist_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Artist"
+                android:textSize="16dp"
+                android:layout_gravity="left"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/status_bar_album_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Album"
+                android:layout_gravity="left"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:singleLine="true" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</RelativeLayout>
