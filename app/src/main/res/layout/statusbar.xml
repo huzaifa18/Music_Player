@@ -111,7 +111,8 @@
                 android:layout_alignParentRight="true"
                 android:background="?android:attr/selectableItemBackground"
                 android:padding="8dp"
-                android:src="@drawable/ic_close_white" />
+                android:src="@drawable/ic_close_white"
+                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

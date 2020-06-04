@@ -18,12 +18,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Design.NoActionBar">
-        <activity android:name=".Activities.PlayScreen"></activity>
+        <service
+            android:name=".Services.MusicsService"
+            android:enabled="true"
+            android:exported="false"></service>
+
+        <activity android:name=".Activities.PlayScreen" />
 
         <service
             android:name=".Services.MusicService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
 
         <activity android:name=".Activities.MainActivity">
             <intent-filter>

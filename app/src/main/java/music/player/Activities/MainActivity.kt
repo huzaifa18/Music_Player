@@ -6,7 +6,6 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.MediaStore
@@ -19,15 +18,14 @@ import android.widget.ListView
 import android.widget.MediaController.MediaPlayerControl
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
-import androidx.core.view.marginBottom
-import androidx.core.view.marginTop
-import androidx.fragment.app.FragmentActivity
+import androidx.core.view.get
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.android.synthetic.main.statusbarexpanded.*
+import kotlinx.android.synthetic.main.activity_play_screen.view.*
+import kotlinx.android.synthetic.main.row_song.view.*
 import music.player.Adapters.SongAdapter
 import music.player.Controller.MusicController
 import music.player.Models.Song
@@ -60,6 +58,8 @@ class MainActivity : Activity(), MediaPlayerControl {
     lateinit var ll_main: LinearLayout
     lateinit var ll_secondary: LinearLayout
 
+    var lastPlayed: Int = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -88,7 +88,12 @@ class MainActivity : Activity(), MediaPlayerControl {
         songView!!.adapter = songAdt
 
         songView!!.setOnItemClickListener { adapterView, view, i, l ->
+            if (lastPlayed!=-1) {
+                adapterView.getChildAt(lastPlayed).iv_playing.visibility = View.GONE
+            }
+            adapterView.getChildAt(i).iv_playing.visibility = View.VISIBLE
             songPicked(view)
+            lastPlayed = i
         }
 
         //setup controller
@@ -140,7 +145,7 @@ class MainActivity : Activity(), MediaPlayerControl {
         super.onStart()
         if (playIntent == null) {
             playIntent = Intent(this, MusicService::class.java)
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE)
+            bindService(Intent(this, MusicService::class.java), musicConnection, Context.BIND_AUTO_CREATE)
             startService(playIntent)
         }
     }
@@ -156,7 +161,11 @@ class MainActivity : Activity(), MediaPlayerControl {
             playbackPaused = false
         }
         controller!!.show(0)
-        startActivity(Intent(this@MainActivity,PlayScreen::class.java))
+
+        val intent = Intent(this@MainActivity, PlayScreen::class.java)
+        intent.putExtra("id",view.tag.toString().toInt())
+        startActivity(intent)
+        //finish()
     }
 
     private fun setBackGroundImage(song_id: Long) {
@@ -215,8 +224,6 @@ class MainActivity : Activity(), MediaPlayerControl {
                         musicCursor.getString(musicCursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
                     val thisArtist =
                         musicCursor.getString(musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    Log.e("TAG", "id: " + thisId.toString())
-                    Log.e("TAG", "URI: " + thisURI.toString())
                     songList!!.add(Song(thisURI, thisId, thisTitle, thisArtist))
                 } while (musicCursor.moveToNext())
                 songAdt.notifyDataSetChanged()
@@ -245,17 +252,17 @@ class MainActivity : Activity(), MediaPlayerControl {
     }
 
     override fun getCurrentPosition(): Int {
-        return if (musicSrv != null && musicBound && musicSrv!!.isPng) musicSrv!!.posn else 0
+        return if (musicSrv != null && musicBound && musicSrv!!.isPlaying) musicSrv!!.posn else 0
     }
 
     override fun getDuration(): Int {
-        return if (musicSrv != null && musicBound && musicSrv!!.isPng) musicSrv!!.dur else 0
+        return if (musicSrv != null && musicBound && musicSrv!!.isPlaying) musicSrv!!.dur else 0
     }
 
     override fun isPlaying(): Boolean {
         if (musicSrv != null && musicBound) {
 
-            return musicSrv!!.isPng
+            return musicSrv!!.isPlaying
         } else {
             return false
         }
@@ -294,6 +301,7 @@ class MainActivity : Activity(), MediaPlayerControl {
             playbackPaused = false
         }
         controller!!.show(0)
+        setBackGroundImage(songList!!.get(musicSrv!!.songId).songID)
     }
 
     private fun playPrev() {
@@ -303,6 +311,7 @@ class MainActivity : Activity(), MediaPlayerControl {
             playbackPaused = false
         }
         controller!!.show(0)
+        setBackGroundImage(songList!!.get(musicSrv!!.songId).songID)
     }
 
     override fun onPause() {

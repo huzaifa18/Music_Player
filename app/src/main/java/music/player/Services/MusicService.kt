@@ -4,8 +4,12 @@ import android.app.*
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.VectorDrawable
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaPlayer.*
@@ -15,27 +19,30 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.provider.MediaStore
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.widget.RelativeLayout
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.PRIORITY_MAX
+import androidx.core.content.res.ResourcesCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import jp.wasabeef.glide.transformations.BlurTransformation
-import music.player.Interfaces.ACTIONS
 import music.player.Activities.MainActivity
-import music.player.Interfaces.PlayerAdapter
+import music.player.Activities.PlayScreen
+import music.player.Interfaces.ACTIONS
 import music.player.Models.Song
 import music.player.R
+import java.io.FileNotFoundException
 import java.util.*
 
 class MusicService : Service(), OnPreparedListener,
     OnErrorListener,
-    OnCompletionListener{
+    OnCompletionListener {
     //media player
     lateinit var player: MediaPlayer
 
@@ -57,6 +64,10 @@ class MusicService : Service(), OnPreparedListener,
     lateinit var notiView: RemoteViews
     lateinit var notiViewExpanded: RemoteViews
 
+    lateinit var notificationBuilder: NotificationCompat.Builder
+    lateinit var mediaSession: MediaSessionCompat
+    var playOrPause = R.drawable.ic_pause_white
+
     override fun onCreate() {
         //create the service
         super.onCreate()
@@ -66,6 +77,9 @@ class MusicService : Service(), OnPreparedListener,
         rand = Random()
         //create player
         player = MediaPlayer()
+
+        mediaSession = MediaSessionCompat(this, "Music Player")
+
         //initialize
         initMusicPlayer()
 
@@ -74,11 +88,13 @@ class MusicService : Service(), OnPreparedListener,
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
+        //notification()
+
         if (ACTIONS.PLAY_ACTION.equals(intent!!.action)) {
-            if (player.isPlaying){
+            if (player.isPlaying) {
                 pausePlayer()
             } else {
-                playSong()
+                resumePlayer()
             }
         }
 
@@ -94,10 +110,10 @@ class MusicService : Service(), OnPreparedListener,
             stopSelf()
         }
 
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
-    fun initLayout(){
+    fun initLayout() {
         notiView = RemoteViews(packageName, R.layout.statusbar)
         notiViewExpanded = RemoteViews(packageName, R.layout.statusbarexpanded)
     }
@@ -120,6 +136,11 @@ class MusicService : Service(), OnPreparedListener,
         songs = theSongs
     }
 
+    //pass song list
+    fun getSongsList(): ArrayList<Song>? {
+        return songs
+    }
+
     //binder
     inner class MusicBinder : Binder() {
         val service: MusicService
@@ -133,8 +154,8 @@ class MusicService : Service(), OnPreparedListener,
 
     //release resources when unbind
     override fun onUnbind(intent: Intent): Boolean {
-        player!!.stop()
-        player!!.release()
+        //player!!.stop()
+        //player!!.release()
         return false
     }
 
@@ -155,10 +176,10 @@ class MusicService : Service(), OnPreparedListener,
         )
         //set the data source
         try {
-            Log.e("TAG","URI: " + Uri.parse(playSong.uri))
-            Log.e("TAG","Track URI: " + trackUri)
+            Log.e("TAG", "URI: " + Uri.parse(playSong.uri))
+            Log.e("TAG", "Track URI: " + trackUri)
             //player = MediaPlayer.create(applicationContext, Uri.parse(playSong.uri))
-            player.setDataSource(applicationContext,Uri.parse(playSong.uri))
+            player.setDataSource(applicationContext, Uri.parse(playSong.uri))
         } catch (e: Exception) {
             Log.e("MUSIC SERVICE", "Error setting data source", e)
         }
@@ -172,6 +193,7 @@ class MusicService : Service(), OnPreparedListener,
 
     override fun onCompletion(mp: MediaPlayer) {
         //check if playback has reached the end of a track
+        Log.e("TAG", "Song Completed!")
         if (player!!.currentPosition > 0) {
             mp.reset()
             playNext()
@@ -206,8 +228,9 @@ class MusicService : Service(), OnPreparedListener,
             .setContentText(songTitle)*/
 
 
-        notiView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_pause_white)
-        notiViewExpanded.setImageViewResource(R.id.status_bar_play,R.drawable.ic_pause_white)
+        notiView.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+        notiViewExpanded.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+
         notification()
     }
 
@@ -244,7 +267,7 @@ class MusicService : Service(), OnPreparedListener,
         notiViewExpanded.setTextViewText(R.id.status_bar_artist_name, strartist)
         val sArtworkUri: Uri = Uri.parse("content://media/external/audio/albumart")
         val albumArtUri: Uri = ContentUris.withAppendedId(sArtworkUri, songs!!.get(songPosn).songID)
-        notiViewExpanded.setImageViewUri(R.id.status_bar_album_art,albumArtUri)
+        notiViewExpanded.setImageViewUri(R.id.status_bar_album_art, albumArtUri)
         Glide.with(applicationContext)
             .load(albumArtUri)
             .apply(RequestOptions.bitmapTransform(BlurTransformation(90)))
@@ -254,43 +277,102 @@ class MusicService : Service(), OnPreparedListener,
                     resource: Drawable,
                     transition: Transition<in Drawable?>?
                 ) {
-                    notiView.setLightBackgroundLayoutId(R.id.notificationbg)
-                    notiView.setImageViewUri(R.id.iv_bg,albumArtUri)
-                    notiViewExpanded.setImageViewUri(R.id.iv_bg,albumArtUri)
+                    notiView.setImageViewUri(R.id.iv_bg, albumArtUri)
+                    notiViewExpanded.setImageViewUri(R.id.iv_bg, albumArtUri)
                 }
             })
 
-        val notIntent = Intent(this, MainActivity::class.java)
+        val notIntent = Intent(this, PlayScreen::class.java)
         notIntent.setAction(Intent.ACTION_MAIN)
         notIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-        notIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        notIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pendInt = PendingIntent.getActivity(
             this, 0,
             notIntent, PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val channelId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { createNotificationChannel("my_service", "My Background Service") } else { "" }
-        val notificationBuilder = NotificationCompat.Builder(this, channelId )
-        val notification = notificationBuilder.setOngoing(true)
+        var bitmap: Bitmap?
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, albumArtUri)
+        } catch (e: FileNotFoundException) {
+            bitmap = getBitmapFromDrawable(getDrawable(R.drawable.ic_album_art_default))
+        }
+        val channelId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel("my_service", "My Background Service")
+        } else {
+            ""
+        }
+        notificationBuilder = NotificationCompat.Builder(this, channelId)
+        /*val notification = notificationBuilder.setOngoing(true)
             .setContentIntent(pendInt)
             .setSmallIcon(R.drawable.ic_play_white)
-            .setTicker(songTitle)
-            .setOngoing(true)
-            .setCustomContentView(notiView)
-            .setCustomBigContentView(notiViewExpanded)
             .setContentTitle("Playing")
             .setContentText(songTitle)
+            .setTicker(songTitle)
+            .setCustomBigContentView(notiViewExpanded)
+            .setCustomContentView(notiView)
+            .setStyle(NotificationCompat.BigPictureStyle().bigPicture(bitmap))
             .setPriority(PRIORITY_MAX)
             .setCategory(Notification.CATEGORY_SERVICE)
-            .build()
+            .build()*/
 
+        mediaSession.setMetadata(
+            MediaMetadataCompat.Builder()
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap)
+                .putString(
+                    MediaMetadataCompat.METADATA_KEY_ARTIST,
+                    songs!!.get(songPosn).songArtist
+                )
+                //.putString(MediaMetadata.METADATA_KEY_ALBUM, "Dark Side of the Moon")
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, songTitle)
+                .build()
+        )
+        mediaSession.isActive = true
+
+        //MediaSessionCompat
+
+        var notification = NotificationCompat.Builder(this, channelId)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setSmallIcon(R.drawable.ic_play_white)
+            .addAction(R.drawable.ic_prev_white, "Previous", pprevIntent) // #0
+            .addAction(playOrPause, "Pause", pplayIntent) // #1
+            .addAction(R.drawable.ic_next_white, "Next", nnextIntent) // #2
+            .setStyle(
+                androidx.media.app.NotificationCompat.MediaStyle()
+                    .setShowActionsInCompactView(1, 2)
+                    .setMediaSession(mediaSession.sessionToken)
+            )
+            .setContentTitle(songTitle)
+            .setContentText(songs!!.get(songPosn).songArtist)
+            .setLargeIcon(bitmap)
+            .build()
         startForeground(NOTIFY_ID, notification)
     }
 
+    fun getBitmapFromDrawable(drawable: Drawable?): Bitmap? {
+        try {
+            val bitmap: Bitmap
+            bitmap = Bitmap.createBitmap(
+                drawable!!.intrinsicWidth,
+                drawable!!.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(bitmap)
+            drawable!!.setBounds(0, 0, canvas.getWidth(), canvas.getHeight())
+            drawable!!.draw(canvas)
+            return bitmap
+        } catch (e: OutOfMemoryError) {
+            // Handle the error
+            return null
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(channelId: String, channelName: String): String{
-        val chan = NotificationChannel(channelId,
-            channelName, NotificationManager.IMPORTANCE_NONE)
+    private fun createNotificationChannel(channelId: String, channelName: String): String {
+        val chan = NotificationChannel(
+            channelId,
+            channelName, NotificationManager.IMPORTANCE_NONE
+        )
         chan.lightColor = Color.BLUE
         chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -305,13 +387,31 @@ class MusicService : Service(), OnPreparedListener,
     val dur: Int
         get() = player!!.duration
 
-    val isPng: Boolean
+    val isPlaying: Boolean
         get() = player!!.isPlaying
+
+    val songId: Int
+        get() = songPosn
 
     fun pausePlayer() {
         player!!.pause()
-        notiView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_play_white)
-        notiViewExpanded.setImageViewResource(R.id.status_bar_play,R.drawable.ic_play_white)
+        notiView.setImageViewResource(R.id.status_bar_play, R.drawable.ic_play_white)
+        notiViewExpanded.setImageViewResource(R.id.status_bar_play, R.drawable.ic_play_white)
+        playOrPause = R.drawable.ic_play_white
+        notification()
+        notificationBuilder.setOngoing(false)
+        notificationBuilder.setContentTitle("Paused")
+        notificationBuilder.setAutoCancel(true)
+        stopForeground(false)
+    }
+
+    fun resumePlayer() {
+        val seekTo = posn
+        player!!.start()
+        player!!.seekTo(seekTo)
+        notiView.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+        notiViewExpanded.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+        playOrPause = R.drawable.ic_pause_white
         notification()
     }
 
@@ -321,8 +421,9 @@ class MusicService : Service(), OnPreparedListener,
 
     fun go() {
         player!!.start()
-        notiView.setImageViewResource(R.id.status_bar_play,R.drawable.ic_pause_white)
-        notiViewExpanded.setImageViewResource(R.id.status_bar_play,R.drawable.ic_pause_white)
+        notiView.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+        notiViewExpanded.setImageViewResource(R.id.status_bar_play, R.drawable.ic_pause_white)
+        playOrPause = R.drawable.ic_pause_white
         notification()
     }
 

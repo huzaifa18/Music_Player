@@ -14,6 +14,7 @@ import com.bumptech.glide.request.RequestOptions
 import jp.wasabeef.glide.transformations.BlurTransformation
 import music.player.Models.Song
 import music.player.R
+import pl.droidsonroids.gif.GifImageView
 import java.util.*
 
 
@@ -28,6 +29,7 @@ class SongAdapter(c: Context?, theSongs: ArrayList<Song>) : BaseAdapter() {
     private val songs: ArrayList<Song>
     private val songInf: LayoutInflater
     private val context: Context
+
     override fun getCount(): Int {
         return songs.size
     }
@@ -51,6 +53,7 @@ class SongAdapter(c: Context?, theSongs: ArrayList<Song>) : BaseAdapter() {
         val songView = songLay.findViewById<View>(R.id.tvSongName) as TextView
         val artistView = songLay.findViewById<View>(R.id.tvArtistName) as TextView
         val albumArt = songLay.findViewById<View>(R.id.album_art) as ImageView
+        val iv_playing = songLay.findViewById(R.id.iv_playing) as GifImageView
         val currSong: Song = songs[position]
         songView.setText(currSong.songTitle)
         artistView.setText(currSong.songArtist)
@@ -59,6 +62,7 @@ class SongAdapter(c: Context?, theSongs: ArrayList<Song>) : BaseAdapter() {
         Glide.with(context).load(albumArtUri)
             .apply(RequestOptions.bitmapTransform(BlurTransformation(1))).into(albumArt)
         songLay.tag = position
+
         return songLay
     }
 
