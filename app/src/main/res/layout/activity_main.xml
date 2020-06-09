@@ -21,7 +21,7 @@
             android:layout_height="?attr/actionBarSize"
             app:title="Music Player"
             app:titleTextColor="@color/colorWhite"
-            android:background="@color/transparent" />
+            android:background="@color/transparent"/>
 
         <!-- song list -->
 

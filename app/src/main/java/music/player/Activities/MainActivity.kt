@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
@@ -16,18 +17,18 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.MediaController.MediaPlayerControl
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
-import androidx.core.view.get
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.android.synthetic.main.activity_play_screen.view.*
 import kotlinx.android.synthetic.main.row_song.view.*
 import music.player.Adapters.SongAdapter
 import music.player.Controller.MusicController
+import music.player.DataBase.SharedPrefManager
 import music.player.Models.Song
 import music.player.R
 import music.player.Services.MusicService
@@ -64,11 +65,37 @@ class MainActivity : Activity(), MediaPlayerControl {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        actionBar?.setDisplayOptions(
+            ActionBar.DISPLAY_SHOW_HOME or
+                    ActionBar.DISPLAY_SHOW_TITLE or ActionBar.DISPLAY_HOME_AS_UP or ActionBar.DISPLAY_USE_LOGO
+        )
+        actionBar?.setIcon(R.drawable.logo)
+
         var toolbar: Toolbar = findViewById(R.id.toolbar)
-        toolbar.inflateMenu(R.menu.main)
+        //toolbar.inflateMenu(R.menu.main)
 
         init()
         checkPermission()
+        Handler().postDelayed({
+            lastPlayedSong()
+        }, 1000)
+    }
+
+    private fun lastPlayedSong() {
+        if (SharedPrefManager.getInstance(this).lastClicked != -1) {
+            //songPicked(songView!!.getChildAt(SharedPrefManager.getInstance(this).lastClicked))
+            val view = songView!!.getChildAt(SharedPrefManager.getInstance(this).lastClicked)
+            if (view != null) {
+                setBackGroundImage(songList!!.get(view.tag.toString().toInt()).songID)
+                musicSrv!!.setSong(view.tag.toString().toInt())
+                //musicSrv!!.playSong()
+                if (playbackPaused) {
+                    setController()
+                    playbackPaused = true
+                }
+                controller!!.show(0)
+            }
+        }
     }
 
     fun init() {
@@ -88,12 +115,15 @@ class MainActivity : Activity(), MediaPlayerControl {
         songView!!.adapter = songAdt
 
         songView!!.setOnItemClickListener { adapterView, view, i, l ->
-            if (lastPlayed!=-1) {
+            if (lastPlayed != -1 && adapterView.getChildAt(lastPlayed) != null) {
                 adapterView.getChildAt(lastPlayed).iv_playing.visibility = View.GONE
             }
-            adapterView.getChildAt(i).iv_playing.visibility = View.VISIBLE
+            if (adapterView.getChildAt(i) != null) {
+                adapterView.getChildAt(i).iv_playing.visibility = View.VISIBLE
+            }
             songPicked(view)
             lastPlayed = i
+            SharedPrefManager.getInstance(this).lastPlayedSong(lastPlayed)
         }
 
         //setup controller
@@ -145,7 +175,11 @@ class MainActivity : Activity(), MediaPlayerControl {
         super.onStart()
         if (playIntent == null) {
             playIntent = Intent(this, MusicService::class.java)
-            bindService(Intent(this, MusicService::class.java), musicConnection, Context.BIND_AUTO_CREATE)
+            bindService(
+                Intent(this, MusicService::class.java),
+                musicConnection,
+                Context.BIND_AUTO_CREATE
+            )
             startService(playIntent)
         }
     }
@@ -163,7 +197,7 @@ class MainActivity : Activity(), MediaPlayerControl {
         controller!!.show(0)
 
         val intent = Intent(this@MainActivity, PlayScreen::class.java)
-        intent.putExtra("id",view.tag.toString().toInt())
+        intent.putExtra("id", view.tag.toString().toInt())
         startActivity(intent)
         //finish()
     }

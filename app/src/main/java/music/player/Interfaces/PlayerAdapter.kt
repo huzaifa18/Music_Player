@@ -28,6 +28,7 @@ interface PlayerAdapter {
     fun getPlayerPosition(): Int
 
     fun getMediaPlayer(): MediaPlayer?
+
     fun initMediaPlayer()
 
     fun release()
@@ -45,7 +46,6 @@ interface PlayerAdapter {
     fun setPlaybackInfoListener(playbackInfoListener: PlayBackInfoListener)
 
     fun registerNotificationActionsReceiver(isRegister: Boolean)
-
 
     fun setCurrentSong(song: Song, songs: List<Song>)
 

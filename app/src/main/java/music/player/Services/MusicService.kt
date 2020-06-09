@@ -14,10 +14,7 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.MediaPlayer.*
 import android.net.Uri
-import android.os.Binder
-import android.os.Build
-import android.os.IBinder
-import android.os.PowerManager
+import android.os.*
 import android.provider.MediaStore
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -27,6 +24,7 @@ import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.os.postDelayed
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
@@ -34,8 +32,12 @@ import com.bumptech.glide.request.transition.Transition
 import jp.wasabeef.glide.transformations.BlurTransformation
 import music.player.Activities.MainActivity
 import music.player.Activities.PlayScreen
+import music.player.DataBase.SharedPrefManager
 import music.player.Interfaces.ACTIONS
+import music.player.Interfaces.PlayerAdapter
 import music.player.Models.Song
+import music.player.Playback.MediaPlayerHolder
+import music.player.Playback.MusicNotificationManager
 import music.player.R
 import java.io.FileNotFoundException
 import java.util.*
@@ -43,6 +45,13 @@ import java.util.*
 class MusicService : Service(), OnPreparedListener,
     OnErrorListener,
     OnCompletionListener {
+
+    var mediaPlayerHolder: MediaPlayerHolder? = null
+        private set
+
+    var musicNotificationManager: MusicNotificationManager? = null
+        private set
+
     //media player
     lateinit var player: MediaPlayer
 
@@ -451,6 +460,7 @@ class MusicService : Service(), OnPreparedListener,
 
     override fun onDestroy() {
         //stopForeground(true)
+        SharedPrefManager.getInstance(applicationContext).saveSong(getSongsList()!!.get(songPosn))
     }
 
     //toggle shuffle

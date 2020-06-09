@@ -83,8 +83,9 @@ class PlayScreen : Activity(), MediaPlayerControl {
         listeners()
     }
 
-    private fun updateUI() {
+    fun updateUI() {
 
+        currSong = musicSrv.songId
         musicTitle.text = songs!!.get(currSong).songTitle
         artistName.text = songs!!.get(currSong).songArtist
         setBackGroundImage(songs!!.get(currSong).songID)
@@ -135,14 +136,14 @@ class PlayScreen : Activity(), MediaPlayerControl {
         next.setOnClickListener {
             next.isEnabled = false
             musicSrv.playNext()
-            currSong++
+            //currSong++
             updateUI()
         }
 
         prev.setOnClickListener {
             prev.isEnabled = false
             musicSrv.playPrev()
-            currSong--
+            //currSong--
             updateUI()
         }
 
@@ -150,7 +151,7 @@ class PlayScreen : Activity(), MediaPlayerControl {
             if (musicSrv.player!!.currentPosition > 0) {
                 musicSrv.player.reset()
                 musicSrv.playNext()
-                currSong++
+                //currSong++
                 updateUI()
 
             }

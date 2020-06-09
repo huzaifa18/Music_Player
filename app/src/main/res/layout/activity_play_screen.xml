@@ -11,6 +11,23 @@
         android:background="@color/transparent_black"
         android:scaleType="centerCrop" />
 
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/iv_beats"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:src="@drawable/round_gif"
+        android:scaleType="centerInside"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/iv_beat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/now_playing_gif"
+        android:scaleType="centerCrop"
+        android:layout_alignParentBottom="true"/>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -27,7 +44,14 @@
             android:scrollHorizontally="true"
             android:singleLine="true"
             android:text="Music Title"
-            android:textColor="#ffffff"
+            android:textColor="@color/colorWhite"
+            android:shadowColor="@color/progress_gray"
+            android:outlineAmbientShadowColor="@color/progress_gray"
+            android:outlineSpotShadowColor="@color/progress_gray"
+            android:shadowDx="4"
+            android:shadowDy="4"
+            android:shadowRadius="8"
+            android:padding="8dp"
             android:textSize="30sp" />
 
         <TextView
@@ -41,7 +65,14 @@
             android:scrollHorizontally="true"
             android:singleLine="true"
             android:text="Singer Name - Artist Here"
-            android:textColor="#ffffff"
+            android:textColor="@color/colorWhite"
+            android:shadowColor="@color/progress_gray"
+            android:outlineAmbientShadowColor="@color/progress_gray"
+            android:outlineSpotShadowColor="@color/progress_gray"
+            android:shadowDx="4"
+            android:shadowDy="4"
+            android:shadowRadius="8"
+            android:padding="8dp"
             android:textSize="20sp" />
 
         <RelativeLayout
@@ -70,8 +101,15 @@
                 android:layout_height="120dp"
                 android:layout_below="@+id/seekBar"
                 android:layout_centerInParent="true"
+                android:fontFamily="cursive"
                 android:gravity="center"
                 android:paddingLeft="10dp"
+                android:shadowColor="@color/progress_gray"
+                android:outlineAmbientShadowColor="@color/progress_gray"
+                android:outlineSpotShadowColor="@color/progress_gray"
+                android:shadowDx="4"
+                android:shadowDy="4"
+                android:shadowRadius="8"
                 android:singleLine="true"
                 android:text="0000"
                 android:textColor="@color/colorWhite"
@@ -99,7 +137,8 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="10dp"
                 android:layout_toRightOf="@+id/seekBar"
-                android:background="@android:drawable/ic_media_next" />
+                android:foreground="?android:attr/selectableItemBackground"
+                android:src="@android:drawable/ic_media_next" />
 
             <ImageView
                 android:id="@+id/prev"
@@ -108,7 +147,8 @@
                 android:layout_centerVertical="true"
                 android:layout_gravity="left"
                 android:layout_toLeftOf="@+id/seekBar"
-                android:background="@android:drawable/ic_media_previous" />
+                android:foreground="?android:attr/selectableItemBackground"
+                android:src="@android:drawable/ic_media_previous" />
 
             <LinearLayout
                 android:layout_width="120dp"
@@ -125,7 +165,8 @@
                     android:layout_height="33dp"
                     android:layout_gravity="bottom|left|center_vertical|center_horizontal|center"
                     android:layout_weight="1"
-                    android:background="@drawable/shuffle_unselected"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:src="@drawable/shuffle_unselected"
                     android:paddingRight="2dp" />
 
                 <ImageView
@@ -134,7 +175,8 @@
                     android:layout_height="33dp"
                     android:layout_gravity="center"
                     android:layout_weight="1"
-                    android:background="@drawable/like_unselected" />
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:src="@drawable/like_unselected" />
 
                 <ImageView
                     android:id="@+id/repeat"
@@ -142,7 +184,8 @@
                     android:layout_height="33dp"
                     android:layout_gravity="bottom|right|center_vertical|center_horizontal|center"
                     android:layout_weight="1"
-                    android:background="@drawable/replay_unselected" />
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:src="@drawable/replay_unselected" />
             </LinearLayout>
         </RelativeLayout>
 
@@ -151,8 +194,8 @@
             android:layout_height="60dp"
             android:layout_alignBottom="@+id/songPlayerTopLayout"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="-30dp"
-            android:layout_marginRight="20dp"
+            android:layout_margin="20dp"
+            android:foreground="?android:attr/selectableItemBackground"
             android:background="@drawable/circle">
 
             <ImageView

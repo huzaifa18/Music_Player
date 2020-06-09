@@ -1,5 +1,13 @@
 package music.player.Utilities
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import music.player.R
+import java.io.ByteArrayInputStream
+import java.io.InputStream
+
 
 /**
  * Created by Huzaifa Asif on 6/4/2020.
@@ -8,6 +16,24 @@ package music.player.Utilities
  **/
 
 class Utilities() {
+    fun songArt(path: String, context: Context): Bitmap {
+        val retriever = MediaMetadataRetriever()
+        val inputStream: InputStream
+        retriever.setDataSource(path)
+        if (retriever.embeddedPicture != null) {
+            inputStream = ByteArrayInputStream(retriever.embeddedPicture)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            retriever.release()
+            return bitmap
+        } else {
+            return getLargeIcon(context)
+        }
+    }
+
+    private fun getLargeIcon(context: Context): Bitmap {
+        return BitmapFactory.decodeResource(context.resources, R.drawable.ic_album_art_default)
+    }
+
     fun milliSecondsToTimer(milliseconds: Long): String {
         val secondsString: String
         var finalTimerString = ""

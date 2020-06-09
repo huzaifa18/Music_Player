@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="60dp"
     android:paddingTop="2dp"
-    android:paddingBottom="2dp">
+    android:paddingBottom="2dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:background="?android:attr/selectableItemBackground">
 
     <LinearLayout
         android:id="@+id/btnAction"
